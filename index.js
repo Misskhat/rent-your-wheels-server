@@ -33,6 +33,17 @@ async function run() {
         // sending ping for confirm mongodb connect
         await client.db("Admin").command({ping: 1});
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
+
+        // create car collection data base.
+        const database = client.db("rentYourWheels");
+        const carsCollection = database.collection("cars");
+
+        // Post Car Api
+        app.post("/cars", async (req, res) => {
+            const newCar = req.body;
+            const result = await carsCollection.insertOne(newCar);
+            res.send(result);
+        });
     } finally {
         // leave blank
     }
