@@ -1,5 +1,5 @@
 const express = require("express");
-const {MongoClient, ServerApiVersion} = require("mongodb");
+const {MongoClient, ServerApiVersion, ObjectId} = require("mongodb");
 const app = express();
 const cors = require("cors");
 const port = process.env.PORT || 3000;
@@ -37,11 +37,44 @@ async function run() {
         // create car collection data base.
         const database = client.db("rentYourWheels");
         const carsCollection = database.collection("cars");
+        const bookingCollection = database.collection("bookingData");
 
-        // Post Car Api
+        // Cars API's
+
+        app.get("/cars", async (req, res) => {
+            const result = await carsCollection.find().sort({price: 1}).toArray();
+            res.send(result);
+        });
+
+        app.get("/featured-cars", async (req, res) => {
+            const result = await carsCollection.find().sort({price: 1}).limit(6).toArray();
+            res.send(result);
+        });
+
+        app.get("/cars/:id", async (req, res) => {
+            const id = req.params.id;
+            // console.log(id);
+            const query = {_id: new ObjectId(id)};
+            const result = await carsCollection.findOne(query);
+            res.send(result);
+        });
+
         app.post("/cars", async (req, res) => {
             const newCar = req.body;
             const result = await carsCollection.insertOne(newCar);
+            res.send(result);
+        });
+
+        // booking api's
+        app.get("/bookings", async (req, res) => {
+            const userEmail = req.query.email;
+            const result = await bookingCollection.find({email: userEmail}).toArray();
+            res.send(result);
+        });
+
+        app.post("/bookings", async (req, res) => {
+            const bookingData = req.body;
+            const result = await bookingCollection.insertOne(bookingData);
             res.send(result);
         });
     } finally {
