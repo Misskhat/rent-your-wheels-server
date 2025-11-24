@@ -38,6 +38,7 @@ async function run() {
         const database = client.db("rentYourWheels");
         const carsCollection = database.collection("cars");
         const bookingCollection = database.collection("bookingData");
+        const myListingCollection = database.collection("myListing");
 
         // Cars API's
 
@@ -82,6 +83,31 @@ async function run() {
             const id = req.params.id;
             const query = {_id: new ObjectId(id)};
             const result = await bookingCollection.deleteOne(query);
+            res.send(result);
+        });
+
+        // my listing api's
+
+        app.get("/myListing", async (req, res) => {
+            const userEmail = req.query.email;
+            const query = {email: userEmail};
+            const result = await myListingCollection.find(query).toArray();
+            res.send(result);
+        });
+
+        app.patch("/myListing/:id", async (req, res) => {
+            const id = req.params.id;
+            const updateMyListing = req.body;
+            const query = {_id: new ObjectId(id)};
+            const updated = {$set: updateMyListing};
+            const result = await myListingCollection.updateOne(query, updated);
+            res.send(result);
+        });
+
+        app.delete("/myListing/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = {_id: new ObjectId(id)};
+            const result = await myListingCollection.deleteOne(query);
             res.send(result);
         });
     } finally {
