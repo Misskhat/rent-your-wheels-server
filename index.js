@@ -88,14 +88,15 @@ async function run() {
 
         // my listing api's
 
-        app.get("/myListing", async (req, res) => {
+        app.get("/myListings", async (req, res) => {
             const userEmail = req.query.email;
+            console.log(userEmail);
             const query = {email: userEmail};
-            const result = await myListingCollection.find(query).toArray();
+            const result = await carsCollection.find(query).toArray();
             res.send(result);
         });
 
-        app.patch("/myListing/:id", async (req, res) => {
+        app.patch("/myListings/:id", async (req, res) => {
             const id = req.params.id;
             const updateMyListing = req.body;
             const query = {_id: new ObjectId(id)};
@@ -104,7 +105,7 @@ async function run() {
             res.send(result);
         });
 
-        app.delete("/myListing/:id", async (req, res) => {
+        app.delete("/myListings/:id", async (req, res) => {
             const id = req.params.id;
             const query = {_id: new ObjectId(id)};
             const result = await myListingCollection.deleteOne(query);
