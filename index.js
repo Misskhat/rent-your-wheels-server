@@ -1,19 +1,21 @@
 const express = require("express");
 require("dotenv").config();
-const {MongoClient, ServerApiVersion, ObjectId} = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
 const cors = require("cors");
 const port = process.env.PORT || 3000;
 
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.5bt6oyo.mongodb.net/?appName=Cluster0`;
+// const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.5bt6oyo.mongodb.net/?appName=Cluster0`;
+
+const uri = `mongodb://${process.env.DB_USER}:${process.env.DB_PASS}@ac-zzrqarl-shard-00-00.5bt6oyo.mongodb.net:27017,ac-zzrqarl-shard-00-01.5bt6oyo.mongodb.net:27017,ac-zzrqarl-shard-00-02.5bt6oyo.mongodb.net:27017/?ssl=true&replicaSet=atlas-7zzccd-shard-0&authSource=admin&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
-    serverApi: {
-        version: ServerApiVersion.v1,
-        strict: true,
-        deprecationErrors: true,
-    },
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  },
 });
 
 // middleware
@@ -22,102 +24,110 @@ app.use(express.json());
 
 // test server running or not
 app.get("/", (req, res) => {
-    res.send("Server Running");
+  res.send("Server Running");
 });
 
 // mongoDb function and api's for project
 
 async function run() {
-    try {
-        await client.connect();
-        // sending ping for confirm mongodb connect
-        await client.db("Admin").command({ping: 1});
-        console.log("Pinged your deployment. You successfully connected to MongoDB!");
+  try {
+    await client.connect();
+    // sending ping for confirm mongodb connect
+    // await client.db("Admin").command({ping: 1});
+    console.log(
+      "Pinged your deployment. You successfully connected to MongoDB!",
+    );
 
-        // create car collection data base.
-        const database = client.db("rentYourWheels");
-        const carsCollection = database.collection("cars");
-        const bookingCollection = database.collection("bookingData");
-        const myListingCollection = database.collection("myListing");
+    // create car collection data base.
+    const database = client.db("rentYourWheels");
+    const carsCollection = database.collection("cars");
+    const bookingCollection = database.collection("bookingData");
+    const myListingCollection = database.collection("myListing");
 
-        // Cars API's
+    // Cars API's
 
-        app.get("/cars", async (req, res) => {
-            const result = await carsCollection.find().sort({price: 1}).toArray();
-            res.send(result);
-        });
+    app.get("/cars", async (req, res) => {
+      const result = await carsCollection.find().sort({ price: 1 }).toArray();
+      res.send(result);
+    });
 
-        app.get("/featured-cars", async (req, res) => {
-            const result = await carsCollection.find().sort({price: 1}).limit(6).toArray();
-            res.send(result);
-        });
+    app.get("/featured-cars", async (req, res) => {
+      const result = await carsCollection
+        .find()
+        .sort({ price: 1 })
+        .limit(6)
+        .toArray();
+      res.send(result);
+    });
 
-        app.get("/cars/:id", async (req, res) => {
-            const id = req.params.id;
-            // console.log(id);
-            const query = {_id: new ObjectId(id)};
-            const result = await carsCollection.findOne(query);
-            res.send(result);
-        });
+    app.get("/cars/:id", async (req, res) => {
+      const id = req.params.id;
+      // console.log(id);
+      const query = { _id: new ObjectId(id) };
+      const result = await carsCollection.findOne(query);
+      res.send(result);
+    });
 
-        app.post("/cars", async (req, res) => {
-            const newCar = req.body;
-            const result = await carsCollection.insertOne(newCar);
-            res.send(result);
-        });
+    app.post("/cars", async (req, res) => {
+      const newCar = req.body;
+      const result = await carsCollection.insertOne(newCar);
+      res.send(result);
+    });
 
-        // booking api's
-        app.get("/bookings", async (req, res) => {
-            const userEmail = req.query.email;
-            const result = await bookingCollection.find({email: userEmail}).toArray();
-            res.send(result);
-        });
+    // booking api's
+    app.get("/bookings", async (req, res) => {
+      const userEmail = req.query.email;
+      const result = await bookingCollection
+        .find({ email: userEmail })
+        .toArray();
+      res.send(result);
+    });
 
-        app.post("/bookings", async (req, res) => {
-            const bookingData = req.body;
-            const result = await bookingCollection.insertOne(bookingData);
-            res.send(result);
-        });
+    app.post("/bookings", async (req, res) => {
+      const bookingData = req.body;
+      const result = await bookingCollection.insertOne(bookingData);
+      res.send(result);
+    });
 
-        app.delete("/bookings/:id", async (req, res) => {
-            const id = req.params.id;
-            const query = {_id: new ObjectId(id)};
-            const result = await bookingCollection.deleteOne(query);
-            res.send(result);
-        });
+    app.delete("/bookings/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await bookingCollection.deleteOne(query);
+      res.send(result);
+    });
 
-        // my listing api's
+    // my listing api's
 
-        app.get("/myListings", async (req, res) => {
-            const userEmail = req.query.email;
-            console.log(userEmail);
-            const query = {email: userEmail};
-            const result = await carsCollection.find(query).toArray();
-            res.send(result);
-        });
+    app.get("/myListings", async (req, res) => {
+      const userEmail = req.query.email;
+      console.log(userEmail);
+      const query = { email: userEmail };
+      const result = await carsCollection.find(query).toArray();
+      res.send(result);
+    });
 
-        app.patch("/myListings/:id", async (req, res) => {
-            const id = req.params.id;
-            const updateMyListing = req.body;
-            const query = {_id: new ObjectId(id)};
-            const updated = {$set: updateMyListing};
-            const result = await myListingCollection.updateOne(query, updated);
-            res.send(result);
-        });
+    app.patch("/myListings/:id", async (req, res) => {
+      const id = req.params.id;
+      const updateMyListing = req.body;
+      const query = { _id: new ObjectId(id) };
+      const updated = { $set: updateMyListing };
+      const result = await myListingCollection.updateOne(query, updated);
+      res.send(result);
+    });
 
-        app.delete("/myListings/:id", async (req, res) => {
-            const id = req.params.id;
-            const query = {_id: new ObjectId(id)};
-            const result = await myListingCollection.deleteOne(query);
-            res.send(result);
-        });
-    } finally {
-        // leave blank
-    }
+    app.delete("/myListings/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await myListingCollection.deleteOne(query);
+      res.send(result);
+    });
+  } finally {
+    // leave blank
+  }
 }
 
 run().catch(console.dir);
 
 app.listen(port, () => {
-    console.log(`server running on port number ${port}`);
+  console.log(`server running on port number ${port}`);
 });
